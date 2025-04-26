@@ -6,6 +6,7 @@ pub(crate) mod replacer;
 pub(crate) mod selector;
 pub(crate) mod trim;
 
+use crate::processor::rename::filename_as_string_lossy;
 use crate::{
     Delimiter, Error, Extractor, FileRenamer, Format, RenameProcessor, Renamed, Replacer, Selector,
     Trim,
@@ -13,7 +14,6 @@ use crate::{
 use log::trace;
 use std::collections::HashSet;
 use std::path::PathBuf;
-use crate::processor::rename::filename_as_string_lossy;
 
 /// A [`ProcessorBuilder`] is used to configure the renaming process and produces [`Renamed`] when processing is activated
 #[derive(Debug)]

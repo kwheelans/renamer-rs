@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 //! # Rename-rs
 //! A library to process and rename files or text
-//! 
+//!
 //! # Example
 //! ```rust
 //! # use renamer_rs::{Renamed, Delimiter, Selector, Format, Error};
