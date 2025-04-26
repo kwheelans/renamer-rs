@@ -1,5 +1,5 @@
-use crate::error::Error;
-use crate::error::Error::NoFormattingPatterns;
+use crate::Error;
+use crate::Error::NoFormattingPatterns;
 use log::{debug, trace};
 use regex::Regex;
 
@@ -7,13 +7,18 @@ const FORMAT_PATTERN: &str = r"%[dse]\d+%";
 const SELECTOR_TYPE_PREFIX: &str = "%s";
 const DELIMITER_TYPE_PREFIX: &str = "%d";
 
+/// Represents the type for format string being referenced
 #[derive(Debug, Copy, Clone)]
 pub enum FormatType {
+    /// Represents a [`Delimiter`][crate::Delimiter]
     Delimiter,
+    /// Represents a [`Extractor`][crate::Extractor]
     Extractor,
+    /// Represents a [`Selector`][crate::Selector]
     Selector,
 }
 
+/// Represents detected format patterns that will be replaced during processing
 #[derive(Debug, Clone)]
 pub struct FormatPattern {
     pattern: String,
@@ -21,6 +26,7 @@ pub struct FormatPattern {
     id: usize,
 }
 
+/// Represents the provided format string and all the detected format patterns
 #[derive(Debug, Clone)]
 pub struct Format {
     value: String,
@@ -28,6 +34,7 @@ pub struct Format {
 }
 
 impl FormatPattern {
+    /// Createa a new [`FormatPattern`]
     pub fn new<S: AsRef<str>>(pattern: S, format_type: FormatType, id: usize) -> Self {
         Self {
             pattern: pattern.as_ref().into(),
@@ -35,20 +42,25 @@ impl FormatPattern {
             id,
         }
     }
+
+    /// Returns the [`FormatType`]
     pub fn format_type(&self) -> FormatType {
         self.format_type
     }
 
+    /// Returns the actual format pattern [`String`]
     pub fn pattern(&self) -> &str {
         &self.pattern
     }
 
+    /// Returns the detected ID value used to reference the pattern in combination with the [`FormatType`]
     pub fn id(&self) -> usize {
         self.id
     }
 }
 
 impl Format {
+    /// Create a new [`Format`] from a provided format string
     pub fn new<S: AsRef<str>>(value: S) -> Result<Self, Error> {
         Ok(Self {
             value: value.as_ref().into(),
@@ -80,10 +92,12 @@ impl Format {
         Ok(format_patterns)
     }
 
+    /// Return the format string
     pub fn value(&self) -> &str {
         &self.value
     }
 
+    /// Return the detected format patterns
     pub fn patterns(&self) -> &[FormatPattern] {
         self.patterns.as_slice()
     }
@@ -91,9 +105,8 @@ impl Format {
 
 fn get_format_type<S: AsRef<str>>(value: S) -> FormatType {
     match value.as_ref() {
-        v if v.starts_with(DELIMITER_TYPE_PREFIX)  => FormatType::Delimiter,
-        v if v.starts_with(SELECTOR_TYPE_PREFIX)  => FormatType::Delimiter,
+        v if v.starts_with(DELIMITER_TYPE_PREFIX) => FormatType::Delimiter,
+        v if v.starts_with(SELECTOR_TYPE_PREFIX) => FormatType::Delimiter,
         _ => FormatType::Extractor,
     }
 }
-

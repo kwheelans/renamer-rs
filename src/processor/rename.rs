@@ -1,18 +1,28 @@
-use crate::error::Error;
-use crate::processor::format::{Format, FormatType};
+use crate::Error;
+use crate::{Format, FormatType};
 use std::path::{Path, PathBuf};
 
 const EMPTY_STR: &str = "";
-pub trait Renamer {
+
+/// This trait represents objects that can produce [`Renamed`] trait objects
+pub trait RenameProcessor {
+    /// Produce a [`Renamed`] object from a [`RenameProcessor`]
     fn rename(&self) -> Box<dyn Renamed>;
 }
 
+/// This trait represents that has had the renaming process completed
 pub trait Renamed {
+    /// Return the original value
     fn original(&self) -> &str;
+
+    /// Return the new value
     fn future(&self) -> &str;
+
+    /// Take an action to commit the renaming process to the underlying item(i.e. actually rename the file no the filesystem)
     fn action(&self) -> Result<(), Error>;
 }
 
+/// Represents a file for the purpose on implementing the [`RenameProcessor`] trait
 #[derive(Debug)]
 pub struct FileRenamer {
     segments: Vec<String>,
@@ -22,6 +32,7 @@ pub struct FileRenamer {
     original_path: PathBuf,
 }
 
+/// Represents a file for the purpose on implementing the [`Renamed`] trait
 #[derive(Debug)]
 pub struct RenamedFile {
     original_path: PathBuf,
@@ -30,7 +41,7 @@ pub struct RenamedFile {
     new_name: String,
 }
 
-impl Renamer for FileRenamer {
+impl RenameProcessor for FileRenamer {
     fn rename(&self) -> Box<dyn Renamed> {
         let new_name = process_format(
             self.segments.as_slice(),
@@ -44,6 +55,7 @@ impl Renamer for FileRenamer {
 }
 
 impl FileRenamer {
+    /// Create a new [`FileRenamer`]
     pub fn new<P: AsRef<Path>>(
         original_path: P,
         segments: Vec<String>,
@@ -76,6 +88,7 @@ impl Renamed for RenamedFile {
 }
 
 impl RenamedFile {
+    /// Create a new [`RenamedFile`]
     pub fn new<P: AsRef<Path>, S: AsRef<str>>(original_path: P, new_name: S) -> Self {
         let mut new_path = original_path.as_ref().to_path_buf();
         new_path.set_file_name(new_name.as_ref());
@@ -87,23 +100,28 @@ impl RenamedFile {
         }
     }
 
+    /// Return the original file path
     pub fn original_path(&self) -> &Path {
         self.original_path.as_path()
     }
 
+    /// Return the original filename
     pub fn original_name(&self) -> &str {
         &self.original_name
     }
 
+    /// Return the new file path
     pub fn new_path(&self) -> &Path {
         self.new_path.as_path()
     }
 
+    /// Return the new filename
     pub fn new_name(&self) -> &str {
         &self.new_name
     }
 }
 
+/// Get a filename from a provided path as a [`String`]
 pub fn filename_as_string<P: AsRef<Path>>(path: P) -> String {
     path.as_ref()
         .file_name()
@@ -113,7 +131,12 @@ pub fn filename_as_string<P: AsRef<Path>>(path: P) -> String {
 }
 
 // Create future from original
-fn process_format(segments: &[String], selected: &[Option<String>], extracted: &[Option<String>],format: &Format) -> String {
+fn process_format(
+    segments: &[String],
+    selected: &[Option<String>],
+    extracted: &[Option<String>],
+    format: &Format,
+) -> String {
     let mut output = format.value().to_string();
 
     for replacer in format.patterns() {

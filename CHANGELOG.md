@@ -1,5 +1,9 @@
 # Unreleased
 
+## Changes
+- structs accessible from crate level
+- add documentation
+
 # v0.1.0
 Initial release
 

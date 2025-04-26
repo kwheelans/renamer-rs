@@ -1,23 +1,20 @@
-pub mod delimiter;
-pub mod extractor;
-pub mod format;
-pub mod rename;
-pub mod replacer;
-pub mod selector;
-pub mod trim;
+pub(crate) mod delimiter;
+pub(crate) mod extractor;
+pub(crate) mod format;
+pub(crate) mod rename;
+pub(crate) mod replacer;
+pub(crate) mod selector;
+pub(crate) mod trim;
 
-use crate::error::Error;
-use crate::processor::delimiter::Delimiter;
-use crate::processor::extractor::Extractor;
-use crate::processor::format::Format;
-use crate::processor::rename::{FileRenamer, Renamed, Renamer, filename_as_string};
-use crate::processor::replacer::Replacer;
-use crate::processor::selector::Selector;
-use crate::processor::trim::Trim;
+use crate::{
+    Delimiter, Error, Extractor, FileRenamer, Format, RenameProcessor, Renamed, Replacer, Selector,
+    Trim, filename_as_string,
+};
 use log::trace;
 use std::collections::HashSet;
 use std::path::PathBuf;
 
+/// A [`ProcessorBuilder`] is used to configure the renaming process and produces [`Renamed`] when processing is activated
 #[derive(Debug)]
 pub struct ProcessorBuilder {
     delimiters: Vec<Delimiter>,
@@ -30,6 +27,7 @@ pub struct ProcessorBuilder {
 }
 
 impl ProcessorBuilder {
+    /// Constructs new [`ProcessorBuilder`]
     pub fn new(format: Format) -> Self {
         Self {
             delimiters: Vec::new(),
@@ -42,66 +40,79 @@ impl ProcessorBuilder {
         }
     }
 
+    /// Appends a single [`Delimiter`] item to the existing configuration
     pub fn delimiter(mut self, delimiter: Delimiter) -> Self {
         self.delimiters.push(delimiter);
         self
     }
 
+    /// Appends multiple [`Delimiter`] items to the existing configuration
     pub fn delimiters(mut self, delimiters: Vec<Delimiter>) -> Self {
         self.delimiters.extend(delimiters);
         self
     }
 
+    /// Appends a single file path to the existing configuration
     pub fn file(mut self, file: PathBuf) -> Self {
         self.files.insert(file);
         self
     }
 
+    /// Appends multiple file paths items to the existing configuration
     pub fn files(mut self, files: Vec<PathBuf>) -> Self {
         self.files.extend(files);
         self
     }
 
+    /// Appends a single [`Selector`] item to the existing configuration
     pub fn selector(mut self, selector: Selector) -> Self {
         self.selectors.push(selector);
         self
     }
 
+    /// Appends multiple [`Selector`] items to the existing configuration
     pub fn selectors(mut self, selectors: Vec<Selector>) -> Self {
         self.selectors.extend(selectors);
         self
     }
 
+    /// Appends a single [`Extractor`] item to the existing configuration
     pub fn extractor(mut self, extractor: Extractor) -> Self {
         self.extractors.push(extractor);
         self
     }
 
+    /// Appends multiple [`Extractor`] items to the existing configuration
     pub fn extractors(mut self, extractors: Vec<Extractor>) -> Self {
         self.extractors.extend(extractors);
         self
     }
 
+    /// Appends a single [`Trim`] item to the existing configuration
     pub fn trim(mut self, trim: Trim) -> Self {
         self.trims.push(trim);
         self
     }
 
+    /// Appends multiple [`Trim`] items to the existing configuration
     pub fn trims(mut self, trims: Vec<Trim>) -> Self {
         self.trims.extend(trims);
         self
     }
 
+    /// Appends a single [`Replacer`] item to the existing configuration
     pub fn replacer(mut self, trim: Replacer) -> Self {
         self.replacers.push(trim);
         self
     }
 
+    /// Appends multiple [`Replacer`] items to the existing configuration
     pub fn replacers(mut self, trims: Vec<Replacer>) -> Self {
         self.replacers.extend(trims);
         self
     }
 
+    /// Returns [`Renamed`] trait objects based on the [`ProcessorBuilder`] configuration
     pub fn process(&self) -> Result<Vec<Box<dyn Renamed>>, Error> {
         let mut renamed = Vec::new();
         renamed.extend(self.process_files()?);
@@ -148,13 +159,14 @@ impl ProcessorBuilder {
             .map(|s| s.match_segment(segments))
             .collect()
     }
+
     fn process_extractors<S: AsRef<str>>(&self, value: S) -> Vec<Option<String>> {
         self.extractors
             .iter()
             .map(|e| e.extract(value.as_ref()))
             .collect()
     }
-    
+
     fn process_trims(&self, segments: Vec<String>) -> Vec<String> {
         let mut output = segments;
         for t in self.trims.as_slice() {
@@ -162,7 +174,7 @@ impl ProcessorBuilder {
         }
         output
     }
-    
+
     fn process_replacers(&self, segments: Vec<String>) -> Vec<String> {
         let mut output = segments;
         for r in self.replacers.as_slice() {

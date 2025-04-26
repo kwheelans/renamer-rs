@@ -2,12 +2,16 @@ use crate::error::Error;
 use regex::Regex;
 use std::fmt::{Display, Formatter};
 
+/// USed with [`Delimiter`] to indicate what type of processing should be used
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum DelimiterType {
+    /// Delimiter to be processes as a plain [`String`]
     String,
+    /// Delimiter to be processes as a [`Regex`]
     Regex,
 }
 
+/// Represents a delimiter that will be used to process the input value into segments
 #[derive(Debug, Clone)]
 pub struct Delimiter {
     delimiter_type: DelimiterType,
@@ -16,6 +20,7 @@ pub struct Delimiter {
 }
 
 impl Delimiter {
+    /// Create a  new [`Delimiter`]
     pub fn new<S: AsRef<str>>(value: S, delimiter_type: DelimiterType) -> Result<Self, Error> {
         match delimiter_type {
             DelimiterType::String => Ok(Self {
@@ -30,6 +35,8 @@ impl Delimiter {
             }),
         }
     }
+
+    /// Split a provided input value based on the [`Delimiter`] configuration
     pub fn split<S: AsRef<str>>(&self, input: S) -> Vec<String> {
         match self.delimiter_type {
             DelimiterType::String => input

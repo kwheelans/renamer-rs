@@ -1,6 +1,7 @@
-use crate::error::Error::InvalidValue;
+use crate::Error::InvalidValue;
 use regex::Regex;
 
+/// A struct to be used with the [`ProcessorBuilder`][crate::ProcessorBuilder] to select values from the original string value before segmentation
 #[derive(Debug, Clone)]
 pub struct Extractor {
     #[allow(unused)]
@@ -9,10 +10,12 @@ pub struct Extractor {
 }
 
 impl Extractor {
+    /// Create a new [`Extractor`]
     pub fn new(name: Option<String>, pattern: Regex) -> Self {
         Self { name, pattern }
     }
 
+    /// Perform the matching on the provide value
     pub fn extract<S: AsRef<str>>(&self, value: S) -> Option<String> {
         self.pattern
             .find(value.as_ref())
