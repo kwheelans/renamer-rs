@@ -24,9 +24,7 @@ jobs:
           curl -L "${{ github.server_url }}/${{ github.repository }}/archive/refs/tags/${{ github.ref_name }}.tar.gz" -o ${{ github.event.repository.name }}-${{ github.ref_name }}.tar.gz
           
           sha512sum *.tar.gz >> checksum.sha512
-          sha512sum *.zip >> checksum.sha512
           b2sum *.tar.gz >> checksum.b2sum
-          b2sum *.zip >> checksum.b2sum
 
       - name: Upload Checksum sha512
         uses: sekwah41/upload-release-assets@v1
