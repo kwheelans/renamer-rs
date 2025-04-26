@@ -94,7 +94,7 @@ impl RenamedFile {
         new_path.set_file_name(new_name.as_ref());
         Self {
             original_path: original_path.as_ref().to_path_buf(),
-            original_name: filename_as_string(original_path.as_ref()),
+            original_name: filename_as_string_lossy(original_path.as_ref()),
             new_path,
             new_name: new_name.as_ref().to_string(),
         }
@@ -122,7 +122,7 @@ impl RenamedFile {
 }
 
 /// Get a filename from a provided path as a [`String`]
-pub fn filename_as_string<P: AsRef<Path>>(path: P) -> String {
+pub(crate) fn filename_as_string_lossy<P: AsRef<Path>>(path: P) -> String {
     path.as_ref()
         .file_name()
         .unwrap_or_default()

@@ -8,11 +8,12 @@ pub(crate) mod trim;
 
 use crate::{
     Delimiter, Error, Extractor, FileRenamer, Format, RenameProcessor, Renamed, Replacer, Selector,
-    Trim, filename_as_string,
+    Trim,
 };
 use log::trace;
 use std::collections::HashSet;
 use std::path::PathBuf;
+use crate::processor::rename::filename_as_string_lossy;
 
 /// A [`ProcessorBuilder`] is used to configure the renaming process and produces [`Renamed`] when processing is activated
 #[derive(Debug)]
@@ -123,7 +124,7 @@ impl ProcessorBuilder {
     fn process_files(&self) -> Result<Vec<Box<dyn Renamed>>, Error> {
         let mut renamed = Vec::new();
         for file in self.files.iter() {
-            let filename = filename_as_string(file.as_path());
+            let filename = filename_as_string_lossy(file.as_path());
             let extracted = self.process_extractors(filename.as_str());
             let filename = vec![filename];
             let segments = self.process_delimiters(filename.as_slice());

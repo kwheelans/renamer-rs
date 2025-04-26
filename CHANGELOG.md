@@ -1,8 +1,10 @@
 # Unreleased
 
+# v0.2.0
 ## Changes
 - structs accessible from crate level
 - add documentation
+- filename_as_string function should not be public
 
 # v0.1.0
 Initial release

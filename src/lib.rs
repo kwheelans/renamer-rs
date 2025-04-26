@@ -24,7 +24,7 @@ pub use crate::processor::ProcessorBuilder;
 pub use crate::processor::delimiter::{Delimiter, DelimiterType};
 pub use crate::processor::extractor::Extractor;
 pub use crate::processor::format::{Format, FormatPattern, FormatType};
-pub use crate::processor::rename::{FileRenamer, RenameProcessor, Renamed, filename_as_string};
+pub use crate::processor::rename::{FileRenamer, RenameProcessor, Renamed};
 pub use crate::processor::replacer::Replacer;
 pub use crate::processor::selector::Selector;
 pub use crate::processor::trim::Trim;
