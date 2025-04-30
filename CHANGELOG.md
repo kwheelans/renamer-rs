@@ -1,4 +1,11 @@
 # Unreleased
+## Changes
+- Implement `Default` for `Delimiter`
+- Remove `file()` and `files()` methods and replace with `input()` and `inputs()`
+- Inputs must be a variant of `InputType`
+
+## Fixes
+- Fix selectors not be substituted properly in the format selector
 
 # v0.2.0
 ## Changes

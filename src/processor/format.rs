@@ -1,11 +1,12 @@
 use crate::Error;
-use crate::Error::NoFormattingPatterns;
+use crate::Error::{NoFormattingPatterns, UnknownFormatType};
 use log::{debug, trace};
 use regex::Regex;
 
 const FORMAT_PATTERN: &str = r"%[dse]\d+%";
 const SELECTOR_TYPE_PREFIX: &str = "%s";
 const DELIMITER_TYPE_PREFIX: &str = "%d";
+const EXTRACTOR_TYPE_PREFIX: &str = "%e";
 
 /// Represents the type for format string being referenced
 #[derive(Debug, Copy, Clone)]
@@ -34,7 +35,7 @@ pub struct Format {
 }
 
 impl FormatPattern {
-    /// Createa a new [`FormatPattern`]
+    /// Create a new [`FormatPattern`]
     pub fn new<S: AsRef<str>>(pattern: S, format_type: FormatType, id: usize) -> Self {
         Self {
             pattern: pattern.as_ref().into(),
@@ -81,7 +82,7 @@ impl Format {
 
         let mut format_patterns = Vec::with_capacity(format_matches.len());
         for format_match in &format_matches {
-            let format_type = get_format_type(format_match);
+            let format_type = get_format_type(format_match)?;
             let id = format_match
                 .get(2..format_match.len() - 1)
                 .unwrap_or_default()
@@ -103,10 +104,11 @@ impl Format {
     }
 }
 
-fn get_format_type<S: AsRef<str>>(value: S) -> FormatType {
+fn get_format_type<S: AsRef<str>>(value: S) -> Result<FormatType, Error> {
     match value.as_ref() {
-        v if v.starts_with(DELIMITER_TYPE_PREFIX) => FormatType::Delimiter,
-        v if v.starts_with(SELECTOR_TYPE_PREFIX) => FormatType::Delimiter,
-        _ => FormatType::Extractor,
+        v if v.starts_with(DELIMITER_TYPE_PREFIX) => Ok(FormatType::Delimiter),
+        v if v.starts_with(SELECTOR_TYPE_PREFIX) => Ok(FormatType::Selector),
+        v if v.starts_with(EXTRACTOR_TYPE_PREFIX) => Ok(FormatType::Extractor),
+        _ => Err(UnknownFormatType(value.as_ref().into())),
     }
 }

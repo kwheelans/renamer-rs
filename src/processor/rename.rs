@@ -1,5 +1,6 @@
 use crate::Error;
 use crate::{Format, FormatType};
+use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 
 const EMPTY_STR: &str = "";
@@ -11,7 +12,7 @@ pub trait RenameProcessor {
 }
 
 /// This trait represents that has had the renaming process completed
-pub trait Renamed {
+pub trait Renamed: Debug {
     /// Return the original value
     fn original(&self) -> &str;
 
@@ -39,6 +40,21 @@ pub struct RenamedFile {
     new_path: PathBuf,
     original_name: String,
     new_name: String,
+}
+
+#[derive(Debug)]
+pub struct TextRenamer {
+    segments: Vec<String>,
+    selected: Vec<Option<String>>,
+    extracted: Vec<Option<String>>,
+    format: Format,
+    original_string: String,
+}
+
+#[derive(Debug)]
+pub struct RenamedText {
+    original: String,
+    new: String,
 }
 
 impl RenameProcessor for FileRenamer {
@@ -118,6 +134,62 @@ impl RenamedFile {
     /// Return the new filename
     pub fn new_name(&self) -> &str {
         &self.new_name
+    }
+}
+
+impl TextRenamer {
+    /// Create a new [`TextRenamer`]
+    pub fn new<S: AsRef<str>>(
+        original_string: S,
+        segments: Vec<String>,
+        selected: Vec<Option<String>>,
+        extracted: Vec<Option<String>>,
+        format: Format,
+    ) -> Self {
+        Self {
+            segments,
+            selected,
+            extracted,
+            format,
+            original_string: original_string.as_ref().into(),
+        }
+    }
+}
+
+impl RenameProcessor for TextRenamer {
+    fn rename(&self) -> Box<dyn Renamed> {
+        let new_name = process_format(
+            self.segments.as_slice(),
+            self.selected.as_slice(),
+            self.extracted.as_slice(),
+            &self.format,
+        );
+        let renamed = RenamedText::new(self.original_string.as_str(), new_name.as_str());
+        Box::new(renamed)
+    }
+}
+
+impl RenamedText {
+    /// Create a new [`RenamedText`]
+    pub fn new<S: AsRef<str>>(original: S, new: S) -> Self {
+        Self {
+            original: original.as_ref().into(),
+            new: new.as_ref().into(),
+        }
+    }
+}
+
+impl Renamed for RenamedText {
+    fn original(&self) -> &str {
+        self.original.as_str()
+    }
+
+    fn future(&self) -> &str {
+        self.new.as_str()
+    }
+
+    fn action(&self) -> Result<(), Error> {
+        Ok(())
     }
 }
 

@@ -8,9 +8,13 @@ pub enum Error {
     #[error("No formatting patterns were found in the format string")]
     NoFormattingPatterns,
 
-    /// Invalid  value was found during processing
+    /// Invalid value was found during processing
     #[error("Invalid Value: {0}")]
     InvalidValue(String),
+
+    /// Error determining [`FormatType`][crate::FormatType] when processing found formating patterns
+    #[error("Unknown Format Type: {0}")]
+    UnknownFormatType(String),
 
     // ### Converting from other error types ###
     /// Pass-thru [`std::io::Error`].

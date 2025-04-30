@@ -1,30 +1,32 @@
 pub(crate) mod delimiter;
 pub(crate) mod extractor;
 pub(crate) mod format;
+pub(crate) mod inputs;
 pub(crate) mod rename;
 pub(crate) mod replacer;
 pub(crate) mod selector;
 pub(crate) mod trim;
 
-use crate::processor::rename::filename_as_string_lossy;
+use crate::Error::InvalidValue;
+use crate::processor::inputs::InputType;
+use crate::processor::rename::{TextRenamer, filename_as_string_lossy};
 use crate::{
     Delimiter, Error, Extractor, FileRenamer, Format, RenameProcessor, Renamed, Replacer, Selector,
     Trim,
 };
+use indexmap::IndexSet;
 use log::trace;
-use std::collections::HashSet;
-use std::path::PathBuf;
 
 /// A [`ProcessorBuilder`] is used to configure the renaming process and produces [`Renamed`] when processing is activated
 #[derive(Debug)]
 pub struct ProcessorBuilder {
     delimiters: Vec<Delimiter>,
     extractors: Vec<Extractor>,
-    selectors: Vec<Selector>,
     format: Format,
-    trims: Vec<Trim>,
+    inputs: IndexSet<InputType>,
     replacers: Vec<Replacer>,
-    files: HashSet<PathBuf>,
+    selectors: Vec<Selector>,
+    trims: Vec<Trim>,
 }
 
 impl ProcessorBuilder {
@@ -33,11 +35,11 @@ impl ProcessorBuilder {
         Self {
             delimiters: Vec::new(),
             extractors: Vec::new(),
-            selectors: Vec::new(),
             format,
-            trims: Vec::new(),
+            inputs: IndexSet::new(),
             replacers: Vec::new(),
-            files: HashSet::new(),
+            selectors: Vec::new(),
+            trims: Vec::new(),
         }
     }
 
@@ -53,30 +55,6 @@ impl ProcessorBuilder {
         self
     }
 
-    /// Appends a single file path to the existing configuration
-    pub fn file(mut self, file: PathBuf) -> Self {
-        self.files.insert(file);
-        self
-    }
-
-    /// Appends multiple file paths items to the existing configuration
-    pub fn files(mut self, files: Vec<PathBuf>) -> Self {
-        self.files.extend(files);
-        self
-    }
-
-    /// Appends a single [`Selector`] item to the existing configuration
-    pub fn selector(mut self, selector: Selector) -> Self {
-        self.selectors.push(selector);
-        self
-    }
-
-    /// Appends multiple [`Selector`] items to the existing configuration
-    pub fn selectors(mut self, selectors: Vec<Selector>) -> Self {
-        self.selectors.extend(selectors);
-        self
-    }
-
     /// Appends a single [`Extractor`] item to the existing configuration
     pub fn extractor(mut self, extractor: Extractor) -> Self {
         self.extractors.push(extractor);
@@ -89,15 +67,15 @@ impl ProcessorBuilder {
         self
     }
 
-    /// Appends a single [`Trim`] item to the existing configuration
-    pub fn trim(mut self, trim: Trim) -> Self {
-        self.trims.push(trim);
+    /// Appends a single file path to the existing configuration
+    pub fn input(mut self, input: InputType) -> Self {
+        self.inputs.insert(input);
         self
     }
 
-    /// Appends multiple [`Trim`] items to the existing configuration
-    pub fn trims(mut self, trims: Vec<Trim>) -> Self {
-        self.trims.extend(trims);
+    /// Appends multiple file paths items to the existing configuration
+    pub fn inputs(mut self, inputs: Vec<InputType>) -> Self {
+        self.inputs.extend(inputs);
         self
     }
 
@@ -113,27 +91,91 @@ impl ProcessorBuilder {
         self
     }
 
-    /// Returns [`Renamed`] trait objects based on the [`ProcessorBuilder`] configuration
+    /// Appends a single [`Selector`] item to the existing configuration
+    pub fn selector(mut self, selector: Selector) -> Self {
+        self.selectors.push(selector);
+        self
+    }
+
+    /// Appends multiple [`Selector`] items to the existing configuration
+    pub fn selectors(mut self, selectors: Vec<Selector>) -> Self {
+        self.selectors.extend(selectors);
+        self
+    }
+
+    /// Appends a single [`Trim`] item to the existing configuration
+    pub fn trim(mut self, trim: Trim) -> Self {
+        self.trims.push(trim);
+        self
+    }
+
+    /// Appends multiple [`Trim`] items to the existing configuration
+    pub fn trims(mut self, trims: Vec<Trim>) -> Self {
+        self.trims.extend(trims);
+        self
+    }
+
+    /// Returns [`Renamed`] trait objects based on the [`ProcessorBuilder`] configuration for all items
     pub fn process(&self) -> Result<Vec<Box<dyn Renamed>>, Error> {
         let mut renamed = Vec::new();
-        renamed.extend(self.process_files()?);
-
+        renamed.extend(self.process_inputs(None)?);
         Ok(renamed)
     }
 
-    fn process_files(&self) -> Result<Vec<Box<dyn Renamed>>, Error> {
+    /// Returns [`Renamed`] trait objects based on the [`ProcessorBuilder`] configuration up to the processing limit provided
+    pub fn process_subset(&self, processing_limit: usize) -> Result<Vec<Box<dyn Renamed>>, Error> {
+        match processing_limit == 0 {
+            true => Err(InvalidValue(
+                "processing_limit must be greater than 0".to_string(),
+            )),
+            false => {
+                let mut renamed = Vec::new();
+                renamed.extend(self.process_inputs(Some(processing_limit))?);
+                Ok(renamed)
+            }
+        }
+    }
+
+    fn process_inputs(
+        &self,
+        processing_limit: Option<usize>,
+    ) -> Result<Vec<Box<dyn Renamed>>, Error> {
         let mut renamed = Vec::new();
-        for file in self.files.iter() {
-            let filename = filename_as_string_lossy(file.as_path());
-            let extracted = self.process_extractors(filename.as_str());
-            let filename = vec![filename];
-            let segments = self.process_delimiters(filename.as_slice());
+        for input_type in self.inputs.iter() {
+            let process_string = match input_type {
+                InputType::File(i) => filename_as_string_lossy(i.value()),
+                InputType::Text(i) => i.value().into(),
+            };
+
+            let extracted = self.process_extractors(process_string.as_str());
+            let process_strings = vec![process_string];
+            let segments = self.process_delimiters(process_strings.as_slice());
             let segments = self.process_trims(segments);
             let segments = self.process_replacers(segments);
             let selected = self.process_selectors(segments.as_slice());
-            renamed.push(
-                FileRenamer::new(file, segments, selected, extracted, self.format.clone()).rename(),
-            );
+            renamed.push(match input_type {
+                InputType::File(i) => FileRenamer::new(
+                    i.value(),
+                    segments,
+                    selected,
+                    extracted,
+                    self.format.clone(),
+                )
+                .rename(),
+                InputType::Text(i) => TextRenamer::new(
+                    i.value(),
+                    segments,
+                    selected,
+                    extracted,
+                    self.format.clone(),
+                )
+                .rename(),
+            });
+            if let Some(limit) = processing_limit {
+                if renamed.len() == limit {
+                    break;
+                }
+            }
         }
         Ok(renamed)
     }

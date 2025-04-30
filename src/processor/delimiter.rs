@@ -2,6 +2,8 @@ use crate::error::Error;
 use regex::Regex;
 use std::fmt::{Display, Formatter};
 
+const WHITESPACE: &str = " ";
+
 /// USed with [`Delimiter`] to indicate what type of processing should be used
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum DelimiterType {
@@ -20,7 +22,7 @@ pub struct Delimiter {
 }
 
 impl Delimiter {
-    /// Create a  new [`Delimiter`]
+    /// Create a new [`Delimiter`]
     pub fn new<S: AsRef<str>>(value: S, delimiter_type: DelimiterType) -> Result<Self, Error> {
         match delimiter_type {
             DelimiterType::String => Ok(Self {
@@ -58,5 +60,15 @@ impl Delimiter {
 impl Display for Delimiter {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value.as_str())
+    }
+}
+
+impl Default for Delimiter {
+    fn default() -> Self {
+        Self {
+            delimiter_type: DelimiterType::String,
+            value: WHITESPACE.to_string(),
+            regex: None,
+        }
     }
 }
