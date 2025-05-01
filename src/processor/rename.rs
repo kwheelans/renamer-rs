@@ -1,5 +1,6 @@
 use crate::Error;
-use crate::{Format, FormatType};
+use crate::Format;
+use crate::processor::format::FormatType;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 

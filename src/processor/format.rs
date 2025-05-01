@@ -10,7 +10,7 @@ const EXTRACTOR_TYPE_PREFIX: &str = "%e";
 
 /// Represents the type for format string being referenced
 #[derive(Debug, Copy, Clone)]
-pub enum FormatType {
+pub(super) enum FormatType {
     /// Represents a [`Delimiter`][crate::Delimiter]
     Delimiter,
     /// Represents a [`Extractor`][crate::Extractor]
@@ -21,7 +21,7 @@ pub enum FormatType {
 
 /// Represents detected format patterns that will be replaced during processing
 #[derive(Debug, Clone)]
-pub struct FormatPattern {
+pub(super) struct FormatPattern {
     pattern: String,
     format_type: FormatType,
     id: usize,
@@ -36,7 +36,7 @@ pub struct Format {
 
 impl FormatPattern {
     /// Create a new [`FormatPattern`]
-    pub fn new<S: AsRef<str>>(pattern: S, format_type: FormatType, id: usize) -> Self {
+    pub(super) fn new<S: AsRef<str>>(pattern: S, format_type: FormatType, id: usize) -> Self {
         Self {
             pattern: pattern.as_ref().into(),
             format_type,
@@ -45,7 +45,7 @@ impl FormatPattern {
     }
 
     /// Returns the [`FormatType`]
-    pub fn format_type(&self) -> FormatType {
+    pub(super) fn format_type(&self) -> FormatType {
         self.format_type
     }
 
@@ -99,7 +99,7 @@ impl Format {
     }
 
     /// Return the detected format patterns
-    pub fn patterns(&self) -> &[FormatPattern] {
+    pub(super) fn patterns(&self) -> &[FormatPattern] {
         self.patterns.as_slice()
     }
 }

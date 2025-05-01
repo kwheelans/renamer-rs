@@ -23,7 +23,7 @@ pub use crate::error::Error;
 pub use crate::processor::ProcessorBuilder;
 pub use crate::processor::delimiter::{Delimiter, DelimiterType};
 pub use crate::processor::extractor::Extractor;
-pub use crate::processor::format::{Format, FormatPattern, FormatType};
+pub use crate::processor::format::Format;
 pub use crate::processor::inputs::{FileInput, InputType, TextInput};
 pub use crate::processor::rename::{FileRenamer, RenameProcessor, Renamed};
 pub use crate::processor::replacer::Replacer;

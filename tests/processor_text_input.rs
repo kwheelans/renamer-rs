@@ -1,5 +1,8 @@
 use regex::Regex;
-use renamer_rs::{Delimiter, DelimiterType, Extractor, Format, InputType, ProcessorBuilder, Replacer, Selector, TextInput, Trim};
+use renamer_rs::{
+    Delimiter, DelimiterType, Extractor, Format, InputType, ProcessorBuilder, Replacer, Selector,
+    Trim,
+};
 
 const TEXT_INPUT_1: &str = "Some simple text input to be split into segments other1 other2";
 const TEXT_INPUT_2: &str = "44343 $6556 troubled troubadour other values [] {} ?<>";
@@ -12,9 +15,9 @@ fn simple_string_delimiter() {
     let delimiter = Delimiter::default();
     let processor = ProcessorBuilder::new(format)
         .delimiter(delimiter)
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_1)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_2)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_3)));
+        .input(InputType::new_text(TEXT_INPUT_1))
+        .input(InputType::new_text(TEXT_INPUT_2))
+        .input(InputType::new_text(TEXT_INPUT_3));
 
     let renamed = processor.process().expect("Unable to process input");
     assert_eq!(renamed.len(), 3);
@@ -29,9 +32,9 @@ fn simple_regex_delimiter() {
     let delimiter = Delimiter::new(" ", DelimiterType::Regex).expect("unable to create delimiter");
     let processor = ProcessorBuilder::new(format)
         .delimiter(delimiter)
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_1)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_2)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_3)));
+        .input(InputType::new_text(TEXT_INPUT_1))
+        .input(InputType::new_text(TEXT_INPUT_2))
+        .input(InputType::new_text(TEXT_INPUT_3));
 
     let renamed = processor.process().expect("Unable to process input");
     assert_eq!(renamed.len(), 3);
@@ -48,9 +51,9 @@ fn simple_selector() {
     let processor = ProcessorBuilder::new(format)
         .delimiter(delimiter)
         .selector(selector)
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_1)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_2)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_3)));
+        .input(InputType::new_text(TEXT_INPUT_1))
+        .input(InputType::new_text(TEXT_INPUT_2))
+        .input(InputType::new_text(TEXT_INPUT_3));
 
     let renamed = processor.process().expect("Unable to process input");
     assert_eq!(renamed.len(), 3);
@@ -67,9 +70,9 @@ fn simple_extractor() {
     let processor = ProcessorBuilder::new(format)
         .delimiter(delimiter)
         .extractor(extractor)
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_1)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_2)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_3)));
+        .input(InputType::new_text(TEXT_INPUT_1))
+        .input(InputType::new_text(TEXT_INPUT_2))
+        .input(InputType::new_text(TEXT_INPUT_3));
 
     let renamed = processor.process().expect("Unable to process input");
     assert_eq!(renamed.len(), 3);
@@ -86,12 +89,13 @@ fn simple_trim() {
     let processor = ProcessorBuilder::new(format)
         .delimiter(delimiter)
         .trim(trim)
-        .input(InputType::Text(TextInput::new(TRIM_TEXT_INPUT_1)));
-
+        .input(InputType::new_text(TRIM_TEXT_INPUT_1));
 
     let renamed = processor.process().expect("Unable to process input");
-    assert_eq!(renamed.first().unwrap().future(), "middle-thing-beforesafter");
-
+    assert_eq!(
+        renamed.first().unwrap().future(),
+        "middle-thing-beforesafter"
+    );
 }
 
 #[test]
@@ -102,13 +106,12 @@ fn simple_replace() {
     let processor = ProcessorBuilder::new(format)
         .delimiter(delimiter)
         .replacer(replace)
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_1)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_2)))
-        .input(InputType::Text(TextInput::new(TEXT_INPUT_3)));
+        .input(InputType::new_text(TEXT_INPUT_1))
+        .input(InputType::new_text(TEXT_INPUT_2))
+        .input(InputType::new_text(TEXT_INPUT_3));
 
     let renamed = processor.process().expect("Unable to process input");
     assert_eq!(renamed.first().unwrap().future(), "!ome --- !egment!");
     assert_eq!(renamed.get(1).unwrap().future(), "44343 --- !<>");
     assert_eq!(renamed.get(2).unwrap().future(), "Thi! --- !tuff.txt");
-
 }

@@ -23,6 +23,18 @@ pub struct TextInput {
     value: String,
 }
 
+impl InputType {
+    /// Create a new [`InputType`] of variant [`File`]
+    pub fn new_file<P: AsRef<Path>>(value: P) -> Self {
+        Self::File(FileInput::new(value))
+    }
+
+    /// Create a new [`InputType`] of variant [`Text`]
+    pub fn new_text<S: AsRef<str>>(value: S) -> Self {
+        Self::Text(TextInput::new(value))
+    }
+}
+
 impl FileInput {
     /// Create a new [`FileInput`]
     pub fn new<P: AsRef<Path>>(value: P) -> Self {
