@@ -1,4 +1,6 @@
 # Unreleased
+
+# v0.3.0
 ## Changes
 - Implement `Default` for `Delimiter`
 - Remove `file()` and `files()` methods and replace with `input()` and `inputs()`
