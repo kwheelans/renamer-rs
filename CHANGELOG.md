@@ -3,7 +3,7 @@
 - Implement `Default` for `Delimiter`
 - Remove `file()` and `files()` methods and replace with `input()` and `inputs()`
 - Inputs must be a variant of `InputType`
-- Made `FormatPattern` and `FormatType private as they are only needed internally
+- Made `FormatPattern`, `FormatType`, `FileRenamer`, `RenameProcessor` private as they are only needed internally
 
 ## Fixes
 - Fix selectors not be substituted properly in the format selector

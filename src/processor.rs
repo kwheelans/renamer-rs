@@ -9,9 +9,9 @@ pub(crate) mod trim;
 
 use crate::Error::InvalidValue;
 use crate::processor::inputs::InputType;
-use crate::processor::rename::{TextRenamer, filename_as_string_lossy};
+use crate::processor::rename::{TextRenamer, filename_as_string_lossy, FileRenamer, RenameProcessor};
 use crate::{
-    Delimiter, Error, Extractor, FileRenamer, Format, RenameProcessor, Renamed, Replacer, Selector,
+    Delimiter, Error, Extractor, Format, Renamed, Replacer, Selector,
     Trim,
 };
 use indexmap::IndexSet;

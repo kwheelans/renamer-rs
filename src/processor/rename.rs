@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 const EMPTY_STR: &str = "";
 
 /// This trait represents objects that can produce [`Renamed`] trait objects
-pub trait RenameProcessor {
+pub(super) trait RenameProcessor {
     /// Produce a [`Renamed`] object from a [`RenameProcessor`]
     fn rename(&self) -> Box<dyn Renamed>;
 }
@@ -26,7 +26,7 @@ pub trait Renamed: Debug {
 
 /// Represents a file for the purpose on implementing the [`RenameProcessor`] trait
 #[derive(Debug)]
-pub struct FileRenamer {
+pub(super) struct FileRenamer {
     segments: Vec<String>,
     selected: Vec<Option<String>>,
     extracted: Vec<Option<String>>,
@@ -44,7 +44,7 @@ pub struct RenamedFile {
 }
 
 #[derive(Debug)]
-pub struct TextRenamer {
+pub(super) struct TextRenamer {
     segments: Vec<String>,
     selected: Vec<Option<String>>,
     extracted: Vec<Option<String>>,
