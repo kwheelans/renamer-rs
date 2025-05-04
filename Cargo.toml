@@ -5,6 +5,7 @@ authors = ["Kevin Wheelans <kevin.wheelans@proton.me>"]
 edition = "2024"
 rust-version = "1.85"
 description = "A library to process and rename files or text"
+documentation = "https://docs.rs/crate/renamer-rs"
 homepage = "https://github.com/kwheelans/renamer-rs"
 license = "MIT"
 readme = "README.md"
